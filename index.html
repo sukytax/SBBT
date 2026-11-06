@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SBBT — Split Bill Bareng Teman</title>
+  <link rel="icon" type="image/png" href="favicon_SBBT.png">
+  <link rel="apple-touch-icon" href="favicon_SBBT.png">
+  <link rel="stylesheet" href="style.css?v=2.4">
+</head>
+
+<body>
+
+  <div class="header">
+    <h1>SBBT v1.0</h1>
+    <p>Split bill bareng teman</p>
+  </div>
+
+  <div class="container">
+    <!-- Main Tabs Navigation -->
+    <div class="nav-tabs-wrapper">
+      <button class="nav-tab-btn active" id="tabBtnCalc" onclick="switchTab('calc')">Hitung Bill</button>
+      <button class="nav-tab-btn" id="tabBtnDesc" onclick="switchTab('desc')">Deskripsi</button>
+      <button class="nav-tab-btn" id="tabBtnGuide" onclick="switchTab('guide')">Cara Penggunaan</button>
+    </div>
+
+    <!-- TAB 1: KALKULATOR SPLIT BILL -->
+    <div id="calcView">
+      <!-- Progress Indicator with Step Name -->
+      <div class="steps-container">
+        <div class="step-label" id="stepLabel">Langkah 1 dari 6 &middot; <span>Anggota Grup</span></div>
+        <div class="steps">
+          <div class="step-dot active" data-step="1"></div>
+          <div class="step-dot" data-step="2"></div>
+          <div class="step-dot" data-step="3"></div>
+          <div class="step-dot" data-step="4"></div>
+          <div class="step-dot" data-step="5"></div>
+          <div class="step-dot" data-step="6"></div>
+        </div>
+      </div>
+
+      <!-- STEP 1: Anggota Grup -->
+      <div class="section active" id="step-1">
+        <div class="card">
+          <div class="card-title">Anggota Grup</div>
+          <div class="input-group">
+            <label>Jumlah Orang</label>
+            <select id="peopleCount">
+              <option value="2">2 orang</option>
+              <option value="3">3 orang</option>
+              <option value="4">4 orang</option>
+              <option value="5">5 orang</option>
+              <option value="6">6 orang</option>
+              <option value="7">7 orang</option>
+              <option value="8">8 orang</option>
+              <option value="9">9 orang</option>
+              <option value="10">10 orang</option>
+              <option value="11">11 orang</option>
+              <option value="12">12 orang</option>
+              <option value="13">13 orang</option>
+              <option value="14">14 orang</option>
+              <option value="15">15 orang</option>
+            </select>
+          </div>
+          <div class="people-names" id="peopleNames"></div>
+        </div>
+        <div class="nav-buttons">
+          <div></div>
+          <button class="btn btn-primary" onclick="goToStep(2)">Lanjut &rarr;</button>
+        </div>
+      </div>
+
+      <!-- STEP 2: Item Belanjaan -->
+      <div class="section" id="step-2">
+        <div class="card">
+          <div class="card-title">Item Belanjaan</div>
+          <div class="input-row">
+            <div class="input-group" style="flex: 1.4;">
+              <label>Nama Item</label>
+              <input type="text" id="itemName" placeholder="cth: Nasi Goreng">
+            </div>
+            <div class="input-group">
+              <label>Harga Satuan (Rp)</label>
+              <input type="text" id="itemPrice" class="currency-input" placeholder="25.000" inputmode="numeric">
+            </div>
+            <div class="input-group" style="flex: 0.6; min-width: 60px;">
+              <label>Qty</label>
+              <input type="number" id="itemQty" min="1" value="1">
+            </div>
+          </div>
+          <div id="itemLiveTotal" class="live-calc-hint" style="display: none;"></div>
+          <button class="btn btn-add" onclick="addItem()">+ Tambah Item</button>
+          <div class="divider"></div>
+          <div id="itemList">
+            <div class="empty-state">Belum ada item ditambahkan</div>
+          </div>
+        </div>
+        <div class="nav-buttons">
+          <button class="btn btn-outline" onclick="goToStep(1)">&larr; Kembali</button>
+          <button class="btn btn-primary" onclick="goToStep(3)">Lanjut &rarr;</button>
+        </div>
+      </div>
+
+      <!-- STEP 3: Biaya Tambahan -->
+      <div class="section" id="step-3">
+        <div class="card">
+          <div class="card-title">
+            Biaya Tambahan
+            <span class="badge badge-optional">Optional</span>
+          </div>
+
+          <!-- Section 1: Pajak (Proporsional) -->
+          <div class="subcard-section">
+            <div class="section-subtitle">
+              <span>Pajak Resto / PB1</span>
+              <span class="badge-tag">Proporsional</span>
+            </div>
+            <p class="text-muted mb-8">Dihitung proporsional: semakin besar belanjaan, semakin besar porsi pajaknya.</p>
+            <div class="toggle-group" id="taxToggleGroup">
+              <div class="toggle-option active" id="taxTogglePercent" onclick="setTaxType('percent')">% Persentase</div>
+              <div class="toggle-option" id="taxToggleNominal" onclick="setTaxType('nominal')">Rp Nominal</div>
+            </div>
+            <div class="input-group">
+              <label id="taxLabel">Pajak (%)</label>
+              <input type="text" id="taxValue" placeholder="cth: 10 atau 11" inputmode="decimal">
+            </div>
+            <div id="taxLiveEstimate" class="live-calc-hint" style="display: none;"></div>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- Section 2: Biaya Tambahan Lainnya (Bagi Rata) -->
+          <div class="subcard-section">
+            <div class="section-subtitle">
+              <span>Biaya Tambahan Lainnya</span>
+              <span class="badge-tag">Bagi Rata</span>
+            </div>
+            <p class="text-muted mb-8">Ongkir, biaya aplikasi, parkir, dll. Dibagi rata ke masing-masing orang.</p>
+            <div class="input-row">
+              <div class="input-group" style="flex: 1.4;">
+                <label>Nama Biaya</label>
+                <input type="text" id="extraName" placeholder="cth: Ongkir">
+              </div>
+              <div class="input-group">
+                <label>Jumlah (Rp)</label>
+                <input type="text" id="extraAmount" class="currency-input" placeholder="10.000" inputmode="numeric">
+              </div>
+            </div>
+            <button class="btn btn-add" onclick="addExtraCost()">+ Tambah Biaya</button>
+            <div class="divider"></div>
+            <div id="extraCostsList">
+              <div class="empty-state">Tidak ada biaya tambahan lainnya</div>
+            </div>
+          </div>
+        </div>
+        <div class="nav-buttons">
+          <button class="btn btn-outline" onclick="goToStep(2)">&larr; Kembali</button>
+          <button class="btn btn-primary" onclick="goToStep(4)">Lanjut &rarr;</button>
+        </div>
+      </div>
+
+      <!-- STEP 4: Diskon -->
+      <div class="section" id="step-4">
+        <div class="card">
+          <div class="card-title">
+            Diskon
+            <span class="badge badge-optional">Optional</span>
+          </div>
+          <div class="toggle-group" id="discountToggleGroup">
+            <div class="toggle-option active" id="discountTogglePercent" onclick="setDiscountType('percent')">% Persentase</div>
+            <div class="toggle-option" id="discountToggleNominal" onclick="setDiscountType('nominal')">Rp Nominal</div>
+          </div>
+          <div class="input-group">
+            <label id="discountLabel">Diskon (%)</label>
+            <input type="text" id="discountValue" placeholder="cth: 10" inputmode="numeric">
+          </div>
+        </div>
+        <div class="nav-buttons">
+          <button class="btn btn-outline" onclick="goToStep(3)">&larr; Kembali</button>
+          <button class="btn btn-primary" onclick="goToStep(5)">Lanjut &rarr;</button>
+        </div>
+      </div>
+
+      <!-- STEP 5: Assign Item ke Anggota -->
+      <div class="section" id="step-5">
+        <div class="card">
+          <div class="card-title">Pilih Pemesan Tiap Item</div>
+          <p class="text-muted mb-8">Pilih anggota untuk tiap item sampai semua item terisi.</p>
+          <div id="assignList"></div>
+        </div>
+        <div class="nav-buttons">
+          <button class="btn btn-outline" onclick="goToStep(4)">&larr; Kembali</button>
+          <button class="btn btn-primary" onclick="calculate()">Hitung &rarr;</button>
+        </div>
+      </div>
+
+      <!-- STEP 6: Hasil Perhitungan -->
+      <div class="section" id="step-6">
+        <div class="card">
+          <div class="card-title">Hasil Perhitungan</div>
+          <div id="resultSummary"></div>
+          <div id="resultList"></div>
+        </div>
+        <div class="download-area">
+          <button class="btn btn-primary btn-block" onclick="downloadResult()">Unduh PNG</button>
+          <button class="btn btn-outline btn-block" onclick="resetAll()">Mulai Ulang</button>
+        </div>
+        <div class="nav-buttons">
+          <button class="btn btn-outline" onclick="goToStep(5)">&larr; Kembali</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: DESKRIPSI -->
+    <div id="descView" style="display: none;">
+      <div class="card">
+        <div class="card-title">Tentang SBBT</div>
+        <p class="tab-desc-intro">
+          <strong>SBBT (Split Bill Bareng Teman)</strong> adalah aplikasi kalkulator bagi tagihan yang minimalis,
+          transparan, dan adil. Dirancang untuk memudahkan perhitungan pengeluaran bersama saat makan bareng, nongkrong,
+          atau belanja kelompok tanpa ribet hitung manual.
+        </p>
+
+        <div class="feature-item">
+          <div class="feature-title">Perhitungan Per Item yang Adil</div>
+          <p class="feature-text">Setiap item belanjaan dapat dialokasikan ke orang yang memesan sampai kuota item
+            habis. Jika memesan lebih dari satu, porsi dapat ditambah atau dikurangi dengan mudah.</p>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-title">Pajak Proporsional & Biaya Bagi Rata</div>
+          <p class="feature-text">Pajak restoran (PB1 / PPN) dialokasikan secara proporsional sesuai nominal belanja masing-masing orang: semakin besar pesanan, semakin besar pula porsi pajaknya. Sedangkan biaya tambahan lainnya seperti ongkir otomatis dibagi rata ke seluruh anggota grup.</p>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-title">Diskon Adil & Proporsional</div>
+          <p class="feature-text">Potongan diskon dialokasikan secara proporsional sesuai nominal belanja masing-masing
+            orang, semakin tinggi belanja seseorang, semakin besar potongan diskon yang didapatkannya.</p>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-title">Penggabungan Item Otomatis</div>
+          <p class="feature-text">Jika memasukkan item dengan nama dan harga satuan yang sama, sistem akan otomatis
+            menggabungkannya ke kelompok yang sudah ada.</p>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-title">Unduh Struk Gambar</div>
+          <p class="feature-text">Hasil kalkulasi dapat diunduh langsung sebagai struk bergambar dengan tampilan dark
+            mode elegan, siap dibagikan ke WhatsApp atau grup chat.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: CARA PENGGUNAAN -->
+    <div id="guideView" style="display: none;">
+      <div class="card">
+        <div class="card-title">Cara Penggunaan</div>
+
+        <div class="guide-step">
+          <div class="guide-num">1</div>
+          <div class="guide-content">
+            <div class="guide-title">Tentukan Anggota Grup</div>
+            <p class="guide-text">Pilih jumlah orang (2-15 orang) menggunakan dropdown, lalu ketik nama masing-masing
+              anggota.</p>
+          </div>
+        </div>
+
+        <div class="guide-step">
+          <div class="guide-num">2</div>
+          <div class="guide-content">
+            <div class="guide-title">Input Item Belanjaan</div>
+            <p class="guide-text">Ketik nama item, harga satuan, dan jumlah item.</p>
+          </div>
+        </div>
+
+        <div class="guide-step">
+          <div class="guide-num">3</div>
+          <div class="guide-content">
+            <div class="guide-title">Biaya Tambahan (Opsional)</div>
+            <p class="guide-text">Isi pajak restoran (dihitung proporsional sesuai nominal belanja). Tambahkan juga biaya lain seperti ongkir yang akan dibagi rata ke seluruh anggota.</p>
+          </div>
+        </div>
+
+        <div class="guide-step">
+          <div class="guide-num">4</div>
+          <div class="guide-content">
+            <div class="guide-title">Diskon (Opsional)</div>
+            <p class="guide-text">Pilih tipe diskon (persentase % atau nominal Rp). Diskon dialokasikan secara
+              proporsional sesuai porsi belanja masing-masing.</p>
+          </div>
+        </div>
+
+        <div class="guide-step">
+          <div class="guide-num">5</div>
+          <div class="guide-content">
+            <div class="guide-title">Pilih Pemesan Tiap Item</div>
+            <p class="guide-text">Tap nama anggota yang memesan item tersebut sampai kuota item habis (status menjadi
+              hijau <em>Lengkap</em>). Gunakan tombol (+) dan (&minus;) untuk menambah atau mengurangi jumlah item per
+              orang.</p>
+          </div>
+        </div>
+
+        <div class="guide-step">
+          <div class="guide-num">6</div>
+          <div class="guide-content">
+            <div class="guide-title">Hasil & Unduh Struk</div>
+            <p class="guide-text">Klik tombol <strong>Hitung</strong> untuk melihat total yang harus dibayar
+              masing-masing orang. Klik <strong>Unduh Hasil Perhitungan</strong> untuk menyimpan struk pembayaran dalam
+              format gambar.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="app-footer">
+      <p>made by <span>Bimo Bagas</span></p>
+    </footer>
+  </div>
+
+  <!-- POPUP NOTIFIKASI KUSTOM (DI TENGAH LAYAR) -->
+  <div id="appModalOverlay" class="custom-modal-overlay">
+    <div class="custom-modal-card">
+      <div id="appModalIcon" class="custom-modal-icon"></div>
+      <h3 id="appModalTitle" class="custom-modal-title"></h3>
+      <div id="appModalBody" class="custom-modal-body"></div>
+      <div id="appModalActions" class="custom-modal-actions"></div>
+    </div>
+  </div>
+
+  <script src="app.js?v=2.4"></script>
+</body>
+
+</html>

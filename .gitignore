@@ -1,0 +1,27 @@
+# Operating System Files
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Editor / IDE Folders
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs & Temp Files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment / Secrets (jika nanti ada)
+.env
+.env.local
+.env.*.local
+
+# Node modules (jika nanti menggunakan build tools/npm)
+node_modules/
+dist/
+build/
+
